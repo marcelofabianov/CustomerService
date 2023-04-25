@@ -1,0 +1,31 @@
+name: check-code
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check-code:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          extensions: imagick, sqlite3, bcmath, curl, dom, gd, iconv, json, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml, xmlwriter, zip
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --no-suggest --prefer-dist --no-scripts --optimize-autoloader
+        working-directory: ${{ github.workspace }}
+
+      - name: Run Psalm
+        run: vendor/bin/psalm --config=psalm.xml --show-info=false
+        working-directory: ${{ github.workspace }}
+
